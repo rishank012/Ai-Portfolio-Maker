@@ -101,7 +101,7 @@ Make sure you have Python installed on your system. You will also need an active
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/ai-portfolio-maker/issues).
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/rishank012/Ai-Portfolio-Maker/issues).
 
 ---
 
