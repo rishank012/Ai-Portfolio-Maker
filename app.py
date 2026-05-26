@@ -100,12 +100,10 @@ def generate():
         flash("You must be logged in to generate a portfolio.")
         return redirect('/')
 
-    # 1. Clean up the incoming instructions
     instructions = request.form.get('instructions', '').strip()
     pdf_file = request.files.get('resume_pdf')
     resume_text = ""
 
-    # 2. Extract text from PDF if it exists
     if pdf_file and pdf_file.filename.endswith('.pdf'):
         try:
             pdf_reader = PyPDF2.PdfReader(pdf_file)
@@ -114,14 +112,10 @@ def generate():
         except:
             flash("Could not read the PDF. Please try a different file.")
             return redirect('/')
-
-    # FIX #1: Stop immediately if both the text box and PDF are empty
     if not instructions and not resume_text:
-        session.pop('portfolio_file', None) # Clears the old portfolio from the session memory
+        session.pop('portfolio_file', None)
         flash("Please upload a resume or tell EDITH about yourself in the text box!")
         return redirect('/')
-
-    # FIX #2 & #3: Add "Guardrails" to your prompt to reject bad data
     prompt = f"""
     You are an expert Web Developer. 
     Resume Data: {resume_text}
@@ -146,13 +140,11 @@ def generate():
         
         output = response.text.strip()
         
-        # Intercept the AI's rejection message before trying to save it as HTML
         if output == "INVALID_DATA_ERROR":
-            session.pop('portfolio_file', None) # Clears the old portfolio here as well
+            session.pop('portfolio_file', None)
             flash("EDITH detected invalid data. Please provide actual resume details or a valid professional PDF.")
             return redirect('/')
 
-        # If it passes, clean and save the HTML as normal
         clean_html = output.replace('```html', '').replace('```', '').strip()
         
         filename = f"{session['username']}_portfolio.html"
