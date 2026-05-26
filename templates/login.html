@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDITH - Login</title>
+    <script src="https://cdn.tailwindcss.com?v=3.4.1"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #030712; color: #f3f4f6; overflow-x: hidden; margin: 0; min-height: 100vh; }
+        
+        /* The Portfolio Styles */
+        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .text-gradient { background: linear-gradient(to right, #60a5fa, #a855f7, #ec4899); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .bg-neural { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        
+        /* Upload Button Animation */
+        .btn-animate { position: relative; overflow: hidden; transition: all 0.3s ease; }
+        .btn-animate.loading { width: 3rem !important; padding: 0 !important; border-radius: 50% !important; color: transparent !important; pointer-events: none; margin: 0 auto; }
+        .btn-animate.loading::after {
+            content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 1.5rem; height: 1.5rem; border: 3px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        /* FIXED: Browser Autocomplete Background Override */
+        input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #f3f4f6 !important;
+            -webkit-box-shadow: 0 0 0px 1000px rgba(3, 7, 18, 0.9) inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+            caret-color: white;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center relative">
+
+    <canvas id="neural-bg" class="bg-neural"></canvas>
+
+    <div id="main-container" class="glass p-10 rounded-[2rem] w-full max-w-md shadow-[0_0_50px_rgba(96,165,250,0.1)] transition-all duration-500 relative z-10">
+        
+        <div id="login-section" class="flex flex-col items-center w-full">
+            <h1 class="text-5xl font-extrabold mb-2 tracking-tight text-gradient">EDITH</h1>
+            <p class="text-center text-sm text-gray-400 mb-8 uppercase tracking-widest font-semibold">Login / SignUp</p>
+            
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <p class="text-red-400 text-center mb-4 bg-red-900/30 border border-red-500/30 p-3 rounded-xl w-full">{{ messages[0] }}</p>
+              {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/login" onsubmit="animateBtn(this.querySelector('button'))" class="w-full">
+                <input type="hidden" name="action" value="login">
+                <div class="mb-5 w-full">
+                    <input type="text" name="username" placeholder="Username" class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 focus:outline-none focus:border-blue-500 transition text-white placeholder-gray-500" required>
+                </div>
+                <div class="mb-6 w-full">
+                    <input type="password" name="password" placeholder="Password" class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 focus:outline-none focus:border-blue-500 transition text-white placeholder-gray-500" required>
+                </div>
+                
+                <div class="flex items-center justify-between mb-8 text-sm text-gray-400 w-full px-2">
+                    <label class="flex items-center cursor-pointer hover:text-gray-300 transition"><input type="checkbox" class="mr-2 accent-blue-500 rounded bg-gray-800 border-gray-600"> Remember Me</label>
+                    <a href="/forgot_password" class="hover:text-blue-400 transition">Forgot Password?</a>
+                </div>
+
+                <div class="flex justify-center w-full">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-500 transition duration-300 shadow-lg shadow-blue-500/20 btn-animate h-14">Login</button>
+                </div>
+            </form>
+            
+            <p class="text-center mt-8 text-sm text-gray-400">
+                New User? <button onclick="toggleView('register')" class="text-white font-bold hover:text-blue-400 transition">Register</button>
+            </p>
+        </div>
+
+        <div id="register-section" class="hidden flex-col items-center w-full">
+            <form id="signup-form" method="POST" action="/login" enctype="multipart/form-data" class="w-full">
+                <input type="hidden" name="action" value="signup">
+                
+                <div id="reg-step-1" class="w-full">
+                    <h1 class="text-3xl font-bold text-center mb-8">Create Profile</h1>
+                    
+                    <div class="mb-5 w-full">
+                        <input type="text" name="username" id="reg-username" placeholder="Enter Username" class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 focus:outline-none focus:border-blue-500 transition text-white">
+                    </div>
+                    <div class="mb-8 w-full">
+                        <input type="password" name="password" id="reg-password" placeholder="Enter Password" class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 focus:outline-none focus:border-blue-500 transition text-white">
+                    </div>
+                    <button type="button" onclick="nextStep()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-500 transition duration-300">Continue <span style="display:inline-block; width:16px; height:16px; margin-left:4px;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span></button>
+                    
+                    <p class="text-center mt-8 text-sm text-gray-400" id="back-to-login-text">
+                        Already have an account? <button type="button" onclick="toggleView('login')" class="text-white font-bold hover:text-blue-400 transition">Log in</button>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <div id="reg-step-2" class="hidden flex-col items-center justify-center w-full animate-fade-in text-center">
+            <h2 class="text-3xl font-bold mb-2 text-white">Profile Avatar</h2>
+            <p class="text-gray-400 mb-8 text-sm">Upload an image to personalize your profile.</p>
+            
+            <label for="dropzone-file" class="flex flex-col items-center justify-center bg-white/5 border border-dashed border-blue-500/50 rounded-full cursor-pointer hover:border-blue-400 hover:bg-white/10 transition-all shadow-xl shadow-blue-500/10 mx-auto overflow-hidden relative group mb-8" style="width: 150px; height: 150px;">
+                <img id="image-preview" src="" class="absolute inset-0 w-full h-full object-cover hidden">
+                <div id="upload-icon" class="flex flex-col items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: #60a5fa; margin-bottom: 8px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="text-xs text-blue-300 font-bold tracking-widest uppercase">Upload</span>
+                </div>
+                <input id="dropzone-file" form="signup-form" type="file" name="profile_pic" accept="image/*" class="hidden" onchange="previewImage(this)" />
+            </label>
+
+            <div class="flex gap-4 w-full justify-center">
+                <button type="submit" form="signup-form" class="w-full bg-transparent border border-gray-600 text-gray-300 rounded-xl hover:bg-gray-800 transition py-3 font-semibold">Skip</button>
+                <button type="submit" form="signup-form" onclick="animateBtn(this)" class="w-full bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition shadow-lg shadow-blue-500/20 btn-animate h-12 flex justify-center py-3">Finish</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('neural-bg');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 2;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(96, 165, 250, 0.4)'; ctx.fill();
+            }
+        }
+        function init() {
+            resize(); particles = [];
+            for (let i = 0; i < 60; i++) particles.push(new Particle());
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update(); particles[i].draw();
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < 150) {
+                        ctx.beginPath(); ctx.strokeStyle = `rgba(168, 85, 247, ${1 - distance / 150 - 0.6})`;
+                        ctx.lineWidth = 0.5; ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        window.addEventListener('resize', resize);
+        init(); animate();
+
+        function toggleView(view) {
+            document.getElementById('login-section').classList.toggle('hidden', view === 'register');
+            document.getElementById('register-section').classList.toggle('hidden', view === 'login');
+        }
+        function nextStep() {
+            if(document.getElementById('reg-username').value && document.getElementById('reg-password').value) {
+                document.getElementById('reg-step-1').classList.add('hidden');
+                document.getElementById('reg-step-2').classList.remove('hidden');
+                document.getElementById('reg-step-2').style.display = 'flex';
+            } else { alert("Please enter details first."); }
+        }
+
+        // FIXED: Prevent Enter Key from submitting form on Step 1
+        const regStep1 = document.getElementById('reg-step-1');
+        if (regStep1) {
+            regStep1.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    nextStep();
+                }
+            });
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('image-preview').src = e.target.result;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                    document.getElementById('upload-icon').classList.add('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        function animateBtn(btn) { btn.classList.add('loading'); btn.innerHTML = ''; }
+    </script>
+</body>
+</html>
